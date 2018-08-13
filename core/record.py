@@ -12,7 +12,6 @@ RECORD_SECONDS = 5
 
 def rec(file_name):
     p = pyaudio.PyAudio()
-
     stream = p.open(format=FORMAT,
                     channels=CHANNELS,
                     rate=RATE,
@@ -20,14 +19,13 @@ def rec(file_name):
                     frames_per_buffer=CHUNK)
 
     print("开始录音,请说话......")
-
     frames = []
-
     count = 0
     while count < RECORD_SECONDS * 10:  # 控制录音时间
         string_audio_data = stream.read(CHUNK)
         frames.append(string_audio_data)
         count += 1
+
     print("录音结束!")
     stream.stop_stream()
     stream.close()
