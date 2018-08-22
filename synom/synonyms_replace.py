@@ -1,13 +1,16 @@
 # from pyltp import Segmentor
 import jieba
+import json
+from concurrent.futures import  ThreadPoolExecutor
 
 class SynonymsReplacer:
 
     def __init__(self, synonyms_file_path):
 
-        self.synonyms = self.load_synonyms(synonyms_file_path)
+        # self.synonyms = self.load_synonyms(synonyms_file_path)
+        self.synonyms_file_path = synonyms_file_path
         # self.segmentor = self.segment(cws_model_path)
-
+        self.candidate_synonym_list = {} # 每个元素为句子中每个词及其同义词构成的列表
     # def __del__(self):
     #
     #     """对象销毁时要释放pyltp分词模型"""
@@ -36,7 +39,7 @@ class SynonymsReplacer:
 
         """调用pyltp的分词方法将str类型的句子分词并以list形式返回"""
 
-        return list(jieba.cut(sentence,cut_all=False))
+        return list(jieba.cut(sentence, cut_all=False))
 
     def load_synonyms(self, file_path):
 
@@ -53,10 +56,12 @@ class SynonymsReplacer:
         synonyms = []
 
         with open(file_path, 'r', encoding='utf-8') as file:
-            for line in file:
-                synonyms.append(line.strip().split('\t'))
+            for line in json.load(file):
+                sign = yield line
+                if sign == 'stop':
+                    break
 
-        return synonyms
+        # return synonyms
 
     def permutation(self, data):
 
@@ -93,12 +98,26 @@ class SynonymsReplacer:
                 if isinstance(t, str):  # 传入的整个data的最后一个元素是一个一维列表，其中每个元素为str
 
                     permt.extend([[h] + [t]])
-
                 elif isinstance(t, list):
-
                     permt.extend([[h] + t])
-
         return permt
+
+    def search_synonyms(self, word, word_synonyms,index):
+        # print(word)
+        synonyms_generation = self.load_synonyms(self.synonyms_file_path)
+        for syn in synonyms_generation:  # 遍历同义词表，syn为其中的一条
+            try:
+                if word in syn:  # 如果句子中的词在同义词表某一条目中，将该条目中它的同义词添加到该词的同义词列表中
+                    syn.remove(word)
+                    word_synonyms.extend(syn)
+                    synonyms_generation.send('stop')
+            except StopIteration:
+                return {index:word_synonyms}
+
+    def add_synonyms(self,obj):
+        obj = obj.result()
+        self.candidate_synonym_list.update(obj)
+
 
     def get_syno_sents_list(self, input_sentence):
 
@@ -115,33 +134,32 @@ class SynonymsReplacer:
         assert len(input_sentence) > 0, "Length of sentence must greater than 0."
 
         seged_sentence = self.segment(input_sentence)
+        # print(seged_sentence)
 
-        candidate_synonym_list = []  # 每个元素为句子中每个词及其同义词构成的列表
+        pool = ThreadPoolExecutor(len(seged_sentence))
+        for index,word in enumerate(seged_sentence):
+            word_synonyms = [word]
+            pool.submit(self.search_synonyms,word,word_synonyms,index).add_done_callback(self.add_synonyms)
+             # 初始化一个词的同义词列表
+            # self.search_synonyms(word, word_synonyms)
+            # candidate_synonym_list.append(result)  # 添加一个词语的同义词列表
+        pool.shutdown()
+        d = sorted(self.candidate_synonym_list.items(), key=lambda k: k[0])
+        print(d)
+        # perm_sent = self.permutation(candidate_synonym_list)  # 将候选同义词列表们排列组合产生同义句
 
-        for word in seged_sentence:
+        # syno_sent_list = [seged_sentence]
 
-            word_synonyms = [word]  # 初始化一个词的同义词列表
+        # for p in perm_sent:
+        #
+        #     if p != seged_sentence:
+        #         syno_sent_list.append(p)
+        #
+        # return syno_sent_list
 
-            for syn in self.synonyms:  # 遍历同义词表，syn为其中的一条
 
-                if word in syn:  # 如果句子中的词在同义词表某一条目中，将该条目中它的同义词添加到该词的同义词列表中
-
-                    syn.remove(word)
-
-                    word_synonyms.extend(syn)
-
-            candidate_synonym_list.append(word_synonyms)  # 添加一个词语的同义词列表
-
-        perm_sent = self.permutation(candidate_synonym_list)  # 将候选同义词列表们排列组合产生同义句
-
-        syno_sent_list = [seged_sentence]
-
-        for p in perm_sent:
-
-            if p != seged_sentence:
-                syno_sent_list.append(p)
-
-        return syno_sent_list
-
-s= SynonymsReplacer('new_synomys.txt')
-print(s.permutation(list("请确保下载的模型版本与当前版本的对应")))
+s = SynonymsReplacer('new_synomys.json')
+# for k in s.synonyms:
+#     print(k)
+# print(s.synonyms)
+s.get_syno_sents_list("今天是青年人的节日")
