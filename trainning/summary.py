@@ -6,7 +6,7 @@ import numpy as np
 from numpy import linalg
 import heapq
 import re
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 file = os.path.join(BASE_DIR, "database/jsonfile/test3.json")
@@ -93,35 +93,37 @@ class Summarizer:
 from threading import Thread
 
 import time
+
+
 def task(question, paragraph):
     s = Summarizer(paragraph, maxSumarySize=3)
     result = s.get_result()
-    print(question,result)
+    print(question, result)
     list1.append([question, result])
 
 
 if __name__ == '__main__':
-    start=time.time()
+    start = time.time()
     list1 = []
     pool = ThreadPoolExecutor(20)
     for item in collection.find({"category": {"$gt": 0}}):
-    ########利用单线程（串行）##########
+        ########利用单线程（串行）##########
         # summar = Summarizer(paragraph, maxSumarySize=2)
         # result = summar.get_result()
         # print(result)
-    # ########开多个线程###########
-    #     t=Thread(target=task,args=(item.get("question"),u"{}".format(item.get("answer"))))
-    #     t.start()
-    # for i in range(759):
-    #     t.join()
-    # print(list1)
-    # stop = time.time()
-    # print(stop-start)
-    ########利用线程池，开线程########
+        # ########开多个线程###########
+        #     t=Thread(target=task,args=(item.get("question"),u"{}".format(item.get("answer"))))
+        #     t.start()
+        # for i in range(759):
+        #     t.join()
+        # print(list1)
+        # stop = time.time()
+        # print(stop-start)
+        ########利用线程池，开线程########
         pool.submit(task, item.get("question"), u"{}".format(item.get("answer")))
     pool.shutdown()  # join结束
     stop = time.time()
-    print(stop-start)
+    print(stop - start)
     # data_dict1 = dict(conversations=list1)
     # with open(file, 'w') as f:
     #     import json
