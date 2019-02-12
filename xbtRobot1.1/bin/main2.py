@@ -12,7 +12,14 @@ from core.unknow_question_save import UnQuetion
 from core.face_detcet import FaceRecon
 
 
+class FaceDetect(FaceRecon):
 
+    def detect(self):
+        t = MyThread(self.imag_show)
+        t.start()
+
+    def get_face(self):
+        return self.is_face
 
 
 class XbtBot:
@@ -20,12 +27,11 @@ class XbtBot:
         self.words = None
         self.response = None
         self.results =None
-        self.face_detect = FaceRecon('../database/haarcascades/haarcascade_frontalface_alt2.xml')
-        t = MyThread(self.face_detect.imag_show)
-        t.start()
-        while 1:
-            self.Flags = self.face_detect.is_face
-            print(self.Flags)
+        self.face_detect = FaceDetect('../database/haarcascades/haarcascade_frontalface_alt2.xml')
+        self.face_detect.detect()
+        self.interrupt = False
+        while not self.interrupt:
+            self.Flags = self.face_detect.get_face
             if self.Flags:
                 self.run()
     #         else:
@@ -77,7 +83,7 @@ class XbtBot:
     def run(self):
         try:
             self.voice2word()
-            self.results = re.findall(r'(再见|goodbye|bye bye|拜拜|退出|再会|待会见|张总|李总|王总|赵总|刘总|马总)', self.words)
+            self.results = re.findall(r'(再见|goodbye|bye bye|拜拜|退出|再会|待会见)', self.words)
             if len(self.results) == 0:
                 if self.words is not None:
                     self.think()
@@ -86,21 +92,13 @@ class XbtBot:
                     #     tts_main("好的，一会聊",settings.SPEACK_FILE)
                     #     wav2pcm.audio_play(settings.SPEACK_FILE)
                 else:
-                    tts_main("不好意思，您可以再说一遍吗？")
-                    wav2pcm.audio_play(settings.SPEACK_FILE)
-
-            elif [x for x in self.results if x in ["张总", "王总", "李总", "赵总", "刘总","马总"]]:
-                words_list = ["欢迎领导莅临指导！", "欢迎领导来视察工作！", "领导辛苦了！", "请领导多多提出宝贵的意见！"]
-                words_speak = random.choice(words_list)
-                tts_main(words_speak)
-                wav2pcm.audio_play(settings.SPEACK_FILE)
-
+                    wav2pcm.audio_play(settings.SPEACK_TERMS_FILE)
             else:
-                tts_main("好的，再见，有什么事可以来找我哦！")
-                wav2pcm.audio_play(settings.SPEACK_FILE)
+                wav2pcm.audio_play(settings.BYE_TERMS_FILE)
+                self.interrupt = True
+                self.face_detect.quit= True
         except:
-            tts_main("抱歉，我好像没有明白你说了什么")
-            wav2pcm.audio_play(settings.SPEACK_FILE)
+            wav2pcm.audio_play(settings.LISTEN_TERMS_FILE)
 
 
 

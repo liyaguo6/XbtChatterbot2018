@@ -6,7 +6,10 @@ sys.path.insert(0,BASE_DIR)
 
 SPEAK_PATH = os.path.join(BASE_DIR,"database\\vad_speak\\")
 SPEACK_FILE = os.path.join(BASE_DIR,"database\\speak\\test.wav")
+SPEACK_TERMS_FILE = os.path.join(BASE_DIR,"terms\\speak_term\\speak_error.wav")
 LISTEN_FILE =os.path.join(BASE_DIR,"database\\listen\\1kXF.wav")
+LISTEN_TERMS_FILE =os.path.join(BASE_DIR,"terms\\listen_term\\listen_error.wav")
+BYE_TERMS_FILE = os.path.join(BASE_DIR,"terms\\bye_term\\bye.wav")
 PLAY_MEDIA = r"D:/ffmpeg/bin/ffplay"
 TRANSVERTER=r"D:/ffmpeg/bin/ffmpeg"
 

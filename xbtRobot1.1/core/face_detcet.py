@@ -32,6 +32,7 @@ class FaceRecon():
         self.video = cv2.VideoCapture(0)
         self.frame =None
         self.is_face = False
+        self.quit = False
     def capture_image(self):
         # 抓取一帧视频q
         ret, self.frame = self.video.read()
@@ -40,30 +41,29 @@ class FaceRecon():
 
 
     def detection(self):
-        # for (x, y, w, h) in self.faces:
-        #     print(x,y,w,h)
-            # cv2.rectangle(self.frame, (x,y), (x+w,y+h), (0, 0, 255),4)
+
 
         self.faces = self.face_cascade.detectMultiScale(self.gray, 1.2, 8)
         if isinstance(self.faces,np.ndarray):
             self.is_face = True
-            time.sleep(0.5)
+            for (x, y, w, h) in self.faces:
+                cv2.rectangle(self.frame, (x,y), (x+w,y+h), (0, 0, 255),4)
         else:
             self.is_face = False
 
     def close(self):
+            self.quit = True
             self.video.release()
             cv2.destroyAllWindows()
 
     def imag_show(self):
-        while True:
+        while not self.quit:
             self.capture_image()
             self.detection()
             cv2.imshow('Video', self.frame)
             # print(self.is_face)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                self.close()
-                break
+            cv2.waitKey(1)
+
 
 
 if __name__ == '__main__':
