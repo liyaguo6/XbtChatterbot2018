@@ -4,12 +4,13 @@ from core.MyRobert import bot, MyThread
 from core.TuLinRobert import TuLin
 from core.speakout import tts_main
 from setting import settings
-from core.sound2wordXF import wordfromS     # 该文档使用讯飞api进行语音识别
+from core.sound2wordXF import wordfromS  # 该文档使用讯飞api进行语音识别
 import core.moni_record
 import re
 import random
 from core.unknow_question_save import UnQuetion
 from core.face_detcet import FaceRecon
+from core.utilties import random_start_terms
 
 
 class FaceDetect(FaceRecon):
@@ -18,6 +19,7 @@ class FaceDetect(FaceRecon):
         t = MyThread(self.imag_show)
         t.start()
 
+    @property
     def get_face(self):
         return self.is_face
 
@@ -26,14 +28,16 @@ class XbtBot:
     def __init__(self):
         self.words = None
         self.response = None
-        self.results =None
+        self.results = None
         self.face_detect = FaceDetect('../database/haarcascades/haarcascade_frontalface_alt2.xml')
         self.face_detect.detect()
         self.interrupt = False
         while not self.interrupt:
             self.Flags = self.face_detect.get_face
+            print(self.Flags)
             if self.Flags:
                 self.run()
+
     #         else:
     #             self.Flags =False
     #             continue
@@ -52,8 +56,8 @@ class XbtBot:
         t = MyThread(TuLin, args=(self.words,))
         t.setDaemon(True)
         t.start()
-        if response !='False':
-            self.response =response
+        if response != 'False':
+            self.response = response
             print("Mybot-{}".format(self.response))
         else:
             t.join()
@@ -65,10 +69,9 @@ class XbtBot:
         print("思考时间:%s" % (stop2 - start2))
 
     def record(self):
-        s=UnQuetion.conndb()
+        s = UnQuetion.conndb()
         t1 = MyThread(s.dump, args=(self.words,))
         t1.start()
-
 
     def word2vice(self):
         start3 = time.time()
@@ -80,8 +83,13 @@ class XbtBot:
         # wav2pcm.audio_play(settings.SPEACK_FILE)
         # t1.start()
 
+    @property
+    def start_term_path(self):
+        return random_start_terms()
+
     def run(self):
         try:
+            wav2pcm.audio_play(self.start_term_path)
             self.voice2word()
             self.results = re.findall(r'(再见|goodbye|bye bye|拜拜|退出|再会|待会见)', self.words)
             if len(self.results) == 0:
@@ -96,10 +104,9 @@ class XbtBot:
             else:
                 wav2pcm.audio_play(settings.BYE_TERMS_FILE)
                 self.interrupt = True
-                self.face_detect.quit= True
+                self.face_detect.quit = True
         except:
             wav2pcm.audio_play(settings.LISTEN_TERMS_FILE)
-
 
 
 if __name__ == '__main__':

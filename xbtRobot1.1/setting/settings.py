@@ -9,6 +9,7 @@ SPEACK_FILE = os.path.join(BASE_DIR,"database\\speak\\test.wav")
 SPEACK_TERMS_FILE = os.path.join(BASE_DIR,"terms\\speak_term\\speak_error.wav")
 LISTEN_FILE =os.path.join(BASE_DIR,"database\\listen\\1kXF.wav")
 LISTEN_TERMS_FILE =os.path.join(BASE_DIR,"terms\\listen_term\\listen_error.wav")
+START_TERNS_DIR = os.path.join(BASE_DIR,'terms\\start_term')
 BYE_TERMS_FILE = os.path.join(BASE_DIR,"terms\\bye_term\\bye.wav")
 PLAY_MEDIA = r"D:/ffmpeg/bin/ffplay"
 TRANSVERTER=r"D:/ffmpeg/bin/ffmpeg"
