@@ -16,7 +16,31 @@ TRANSVERTER=r"D:/ffmpeg/bin/ffmpeg"
 
 SDK_FILE =r"E:\Windows_aisound_exp1208_aitalk_exp1208_awaken_exp1208_iat1208_tts_online1208_5b559fed\bin\msc_x64.dll"
 
+NAME = "XbtRobot"
+Storage_Adapter='chatterbot.storage.MongoDatabaseAdapter'
 THRESHOLD = 0.65  #本地数据库识别可信度阈值
+Logic_Adapters=[
+              {'import_path': "chatterbot.logic.BestMatch"},
+                {
+                'import_path': 'chatterbot.logic.LowConfidenceAdapter',  # LowConfidenceAdapter当高信度响应未知时，返回具有高置信度的默认响应。
+                'threshold': THRESHOLD,
+                'defa'
+                'ult_response': 'False'
+                },
+          ]
+Filters = [
+              'chatterbot.filters.RepetitiveResponseFilter'  # 这是一个滤波器,它的作用是滤掉重复的回答
+          ]
+
+Input_Adapter = "chatterbot.input.VariableInputTypeAdapter"
+Output_Adapter = "chatterbot.output.OutputAdapter"
+Database_Uri = "mongodb://localhost:27017/"  # 设置你的数据库所在的地址端口号
+READ_ONLY = True
+Train_Features_Words_File = os.path.join(BASE_DIR,"classifier\\database\\features\\train_features_words.pkl")
+Train_Features_File = os.path.join(BASE_DIR,"classifier\\database\\features\\train_features.pkl")
+
+
+
 
 Tulin_API_KEY = "164391ebc59c48a88c7c4cc41682e5a3"
 SYNO_FILES=os.path.join(BASE_DIR,'synom\\new_synomys.json')
